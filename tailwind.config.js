@@ -22,10 +22,11 @@ module.exports = {
         titleFont: ["Montserrat", "sans-serif"],
       },
       boxShadow: {
-        todoShadow: "0px 0px 20px 5px rgba(255,255,255, .2)",
+        todoShadow: "0px 0px 20px 5px rgba(0,0,0, .4)",
       },
     },
   },
-  plugins: [],
+  plugins: [
+    require('tailwind-scrollbar'),
+  ],
 };
-

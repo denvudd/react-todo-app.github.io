@@ -1,23 +1,32 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { addTodos, deleteAllTodos } from "../store/todoSlice";
+
 import TodoList from "./TodoList";
-import { FaChevronDown } from "react-icons/fa";
 import ErrorMessage from "./ErrorMessage";
 import SuccessMessage from "./SuccessMessage";
-import { addTodos } from "../store/todoSlice";
+import Modal from "./UI/Modal";
+
+import { motion } from "framer-motion";
+import { FaChevronDown } from "react-icons/fa";
+
+import { hasKeyword } from "../utils/hasKeyword";
 
 const InputForm = () => {
-  const [value, setValue] = useState("");
-  const [currentTodo, setCurrentTodo] = useState("");
+  const [todoValue, setTodoValue] = useState("");
+  const [descrValue, setDescrValue] = useState("");
   const [category, setCategory] = useState("");
 
   const [successMessage, setSuccessMessage] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
   const [errMessage, setErrMessage] = useState("");
   const [showError, setShowError] = useState(false);
-  
+  const [showModal, setShowModal] = useState(false);
+  const [isChecked, setIsChecked] = useState(false);
+  const [showCheckbox, setShowCheckbox] = useState(false);
+
   const dispatch = useDispatch();
-  const todosItems = useSelector(state => state.todos.todosList);
+  const todosItems = useSelector((state) => state.todos.todosList);
 
   const options = [
     {
@@ -37,6 +46,15 @@ const InputForm = () => {
       title: "Others",
     },
   ];
+  const keywords = [
+    "important",
+    "важно",
+    "дедлайн",
+    "сейчас",
+    "danger",
+    "deadline",
+    "now",
+  ];
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -50,7 +68,7 @@ const InputForm = () => {
   const handleTodoAdd = (e) => {
     e.preventDefault();
 
-    if (value === "") {
+    if (todoValue === "") {
       setErrMessage("Please, write your Todo!");
       setShowError(true);
       setShowSuccess(false);
@@ -63,39 +81,92 @@ const InputForm = () => {
       setShowError(true);
       setShowSuccess(false);
     } else {
+      const isImportant = hasKeyword(todoValue, keywords) || isChecked;
       dispatch(
         addTodos({
           _id: Math.floor(Math.random() * 1000),
-          todo: value,
+          todo: todoValue,
+          descr: descrValue,
           category: category,
+          important: isImportant,
         })
       );
-      setCurrentTodo(value);
-      setValue("");
+      setTodoValue("");
+      setDescrValue("");
+      setIsChecked(false);
+      setShowCheckbox(false);
       setShowError(false);
-      setSuccessMessage(`"${value}" added in list`);
+      setSuccessMessage(`"${todoValue}" added in list`);
       setShowSuccess(true);
     }
   };
 
+  const handleModalClose = () => {
+    setShowModal(false);
+  };
+
+  const handleModalSubmit = () => {
+    dispatch(deleteAllTodos());
+    setShowModal(false);
+  };
+
+  const handleDeleteAllClick = (e) => {
+    e.preventDefault();
+    setShowModal(true);
+  };
+
+
   return (
-    <form className="w-[850px] bg-bodyColor p-6 flex flex-col gap-4 rounded-md">
-      <div className="w-full bg-bodyColor flex items-center gap-4 h-10">
+    <form className="w-full lgl:w-[850px] bg-bodyColor p-6 flex flex-col gap-4 rounded-md shadow-todoShadow">
+      <div className="w-full mt-3 bg-bodyColor flex flex-col mdl:flex-row items-center gap-4 mdl:h-10">
+        <div className="relative w-full mdl:w-[40%] h-full flex justify-between items-center">
+          {showCheckbox && (
+            <div className="w-full absolute top-[-25px] flex gap-2 items-center">
+              <input
+                type="checkbox"
+                value=""
+                onChange={() => setIsChecked(!isChecked)}
+                className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 opacity-70
+                      dark:focus:ring-blue-60 dark:border-gray-600 checked:opacity-100"
+                title="Is important?"
+              />
+              <span
+                className={`text-xs ${
+                  isChecked ? "text-gray-400" : "text-white"
+                }`}
+              >
+                Is important?
+              </span>
+            </div>
+          )}
+          <input
+            onChange={(e) =>
+              setTodoValue(e.target.value) &
+              setShowCheckbox(e.target.value.trim() !== "")
+            }
+            value={todoValue}
+            type="text"
+            placeholder="Enter your todo..."
+            className="w-full bg-bodyColor border border-gray-400 py-2 px-4
+                    placeholder:text-gray-400 text-white text-base placeholder:text-sm tracking-wide
+                    rounded-md outline-none focus-visible:border-orange-600 hover:border-white"
+          />
+        </div>
         <input
-          onChange={(e) => setValue(e.target.value)}
-          value={value}
+          onChange={(e) => setDescrValue(e.target.value)}
+          value={descrValue}
           type="text"
-          placeholder="Enter your todo..."
-          className="w-[80%] h-full bg-bodyColor border border-gray-400 py-2 px-4
-                        placeholder:text-gray-400 text-white text-base placeholder:text-sm tracking-wide
-                        rounded-md outline-none focus-visible:border-orange-600 hover:border-white"
+          placeholder="Enter your todo description..."
+          className="w-full mdl:w-[40%]  h-full bg-bodyColor border border-gray-400 py-2 px-4
+                    placeholder:text-gray-400 text-white text-base placeholder:text-sm tracking-wide
+                    rounded-md outline-none focus-visible:border-orange-600 hover:border-white"
         />
-        <div className="w-[20%] h-full relative">
+        <div className="w-full mdl:w-[20%] h-10 mdl:h-full relative">
           <select
             onChange={(e) => setCategory(e.target.value)}
             className="w-full h-full text-center text-sm capitilize outline-none pr-4 bg-bodyColor
-                             border border-gray-400 cursor-pointer appearance-none rounded-md
-                             focus-visible:border-orange-600 hover:border-white"
+                      border border-gray-400 cursor-pointer appearance-none rounded-md
+                      focus-visible:border-orange-600 hover:border-white"
           >
             {options.map((option) => {
               return <option key={option._id}>{option.title}</option>;
@@ -116,10 +187,43 @@ const InputForm = () => {
         Add Todo
       </button>
       <div className="flex flex-col gap-4">
-        <TodoList todosItems={todosItems} />
+        {todosItems.length === 0 && (
+          <p
+            className="text-center py-4 text-base text-yellow-500 font-titleFont font-medium
+              tracking-wide"
+          >
+            Your Todo list is empty!
+          </p>
+        )}
+        {todosItems.length > 0 && (
+          <>
+            <TodoList todosItems={todosItems} />
+            <motion.button
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ y: { type: "spring", stiffness: 120 } }}
+              onClick={handleDeleteAllClick}
+              className="w-40 h-8 text-sm font-titleFont text-orange-500 hover:text-red-500
+              font-semibold mx-auto bg-transparent border border-gray-500 hover:border-red-500 duration-300"
+            >
+              Deletе all Todos
+            </motion.button>
+          </>
+        )}
       </div>
       {showError && <ErrorMessage message={errMessage} />}
       {showSuccess && <SuccessMessage message={successMessage} />}
+      {showModal && (
+        <Modal
+          handleModalClose={handleModalClose}
+          handleModalSubmit={handleModalSubmit}
+        >
+          <p className="text-xl text-center font-medium text-red-500">
+            Are you sure you want to <span className="font-bold">delete</span>{" "}
+            all Todos?
+          </p>
+        </Modal>
+      )}
     </form>
   );
 };

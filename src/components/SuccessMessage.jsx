@@ -11,13 +11,15 @@ const SuccessMessage = ({ message }) => {
       }}
       className="border-b-green-500 text-green-500 absolute font-titleFont 
       tracking-wide font-medium text-md top-4 right-3 bg-bodyColor px-10 py-4 
-      rounded-sm border-b-[6px]"
+      rounded-sm border-b-[6px] max-w-[380px]"
     >
-      <p className="flex items-center gap-4">
+      <p className="flex items-center gap-4" title={message}>
         <span className="text-xl">
           <MdOutlineDone />
         </span>{" "}
-        {message}
+        <span  className="line-clamp-2">
+          {message}
+        </span>
       </p>
     </motion.div>
   );
