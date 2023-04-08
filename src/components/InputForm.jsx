@@ -7,6 +7,7 @@ import ErrorMessage from "./ErrorMessage";
 import SuccessMessage from "./SuccessMessage";
 import Modal from "./UI/Modal";
 
+import uuid4 from "uuid4";
 import { motion } from "framer-motion";
 import { FaChevronDown } from "react-icons/fa";
 
@@ -24,6 +25,7 @@ const InputForm = () => {
   const [showModal, setShowModal] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
   const [showCheckbox, setShowCheckbox] = useState(false);
+  const [colorValue, setColorValue] = useState("#22C55E".toLowerCase());
 
   const dispatch = useDispatch();
   const todosItems = useSelector((state) => state.todos.todosList);
@@ -84,11 +86,12 @@ const InputForm = () => {
       const isImportant = hasKeyword(todoValue, keywords) || isChecked;
       dispatch(
         addTodos({
-          _id: Math.floor(Math.random() * 1000),
+          _id: uuid4().toString(),
           todo: todoValue,
           descr: descrValue,
           category: category,
           important: isImportant,
+          color: colorValue,
         })
       );
       setTodoValue("");
@@ -115,6 +118,7 @@ const InputForm = () => {
     setShowModal(true);
   };
 
+  console.log(colorValue);
 
   return (
     <form className="w-full lgl:w-[850px] bg-bodyColor p-6 flex flex-col gap-4 rounded-md shadow-todoShadow">
@@ -147,7 +151,7 @@ const InputForm = () => {
             value={todoValue}
             type="text"
             placeholder="Enter your todo..."
-            className="w-full bg-bodyColor border border-gray-400 py-2 px-4
+            className="w-full bg-bodyColor border border-gray-400 py-2 px-4 h-full
                     placeholder:text-gray-400 text-white text-base placeholder:text-sm tracking-wide
                     rounded-md outline-none focus-visible:border-orange-600 hover:border-white"
           />
@@ -175,6 +179,17 @@ const InputForm = () => {
           <span className="absolute right-3 top-3">
             <FaChevronDown />
           </span>
+        </div>
+      </div>
+      <div className="flex items-center justify-start gap-3 w-full">
+        <label className="text-sm">Pick the color:</label>
+        <div className="w-full mdl:w-[20%] h-10 mdl:h-full relative">
+          <input
+            type="color"
+            value={colorValue}
+            onChange={(e) => setColorValue(e.target.value)}
+            className="w-6 h-7 border-none bg-transparent outline-none"
+          />
         </div>
       </div>
       <button
